@@ -1,0 +1,13 @@
+# Rust build artifacts
+target/
+**/target/
+
+# wasm-pack output (rebuilt by wasm-pack build)
+sequoia-wasm/pkg/
+
+# Node
+node_modules/
+signature-web/node_modules/
+
+# OS
+.DS_Store
