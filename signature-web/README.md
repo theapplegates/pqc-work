@@ -107,12 +107,8 @@ a WASM overhead. Native `sq` shows similar timings on the same hardware.
 
 ## Building from source
 
-You need:
-- Rust toolchain (`rustup target add wasm32-unknown-unknown`)
-- `wasm-pack` (`cargo install wasm-pack`)
-- Node.js 20+ and npm
-- A clone of [`theapplegates/pqc-signature-toolkit`](https://github.com/theapplegates/pqc-signature-toolkit.git)
-  (the Sequoia fork with PQC + crypto-rust)
+git clone --recurse-submodules \
+  https://github.com/theapplegates/pqc-work.git ~/pqc-work
 
 Layout:
 
