@@ -107,8 +107,7 @@ a WASM overhead. Native `sq` shows similar timings on the same hardware.
 
 ## Building from source
 
-git clone --recurse-submodules \
-  https://github.com/theapplegates/pqc-work.git ~/pqc-work
+git clone --recurse-submodules https://github.com/theapplegates/pqc-work.git ~/pqc-work
 
 Layout:
 
