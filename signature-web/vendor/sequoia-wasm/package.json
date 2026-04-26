@@ -1,0 +1,15 @@
+{
+  "name": "sequoia-wasm",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "sequoia_wasm_bg.wasm",
+    "sequoia_wasm.js",
+    "sequoia_wasm.d.ts"
+  ],
+  "main": "sequoia_wasm.js",
+  "types": "sequoia_wasm.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

@@ -1,0 +1,143 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { KeyManagementTab } from './components/KeyManagementTab';
+import { SignTab } from './components/SignTab';
+import { VerifyTab } from './components/VerifyTab';
+import { EncryptTab } from './components/EncryptTab';
+import { DecryptTab } from './components/DecryptTab';
+import { KeyDetailsModal } from './components/KeyDetailsModal';
+import { TabButton } from './components/TabButton';
+import { VerifierAccessGate } from './components/VerifierAccessGate';
+import { generateKeyPair as generate } from './services/cryptoService';
+import type { KeyPair, Tab } from './types';
+import { TABS, CRYPTO_PROFILE } from './constants';
+import { KeyIcon, PencilIcon, CheckBadgeIcon, QuestionIcon, ExclamationTriangleIcon, LockClosedIcon, LockOpenIcon } from './components/icons/Icons';
+
+const App: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<Tab>(TABS.KEY_MANAGEMENT);
+  const [keys, setKeys] = useState<KeyPair[]>([]);
+  const [selectedKey, setSelectedKey] = useState<KeyPair | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  useEffect(() => {
+    try {
+      const storedKeys = localStorage.getItem('pq_keys');
+      if (storedKeys) {
+        setKeys(JSON.parse(storedKeys));
+      }
+    } catch (error) {
+      console.error("Failed to load keys from localStorage", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('pq_keys', JSON.stringify(keys));
+    } catch (error) {
+      console.error("Failed to save keys to localStorage", error);
+    }
+  }, [keys]);
+
+  const handleGenerateKeyPair = useCallback(async (userId: string, passphrase?: string) => {
+    setIsGenerating(true);
+    // Use setTimeout to allow the UI to update to the "generating" state
+    // before the potentially blocking key generation operation starts.
+    setTimeout(async () => {
+      try {
+        const newKey = await generate(userId, passphrase);
+        setKeys(prevKeys => [...prevKeys, newKey]);
+        setSelectedKey(newKey);
+      } catch (error) {
+        console.error("Key generation failed:", error);
+        alert("An error occurred during key generation. Please check the console for details.");
+      } finally {
+        setIsGenerating(false);
+      }
+    }, 50);
+  }, []);
+
+  const handleDeleteKey = useCallback((keyId: string) => {
+    if (confirm('Are you sure you want to delete this key?')) {
+      setKeys(prevKeys => prevKeys.filter(k => k.id !== keyId));
+      if (selectedKey?.id === keyId) {
+        setSelectedKey(null);
+      }
+    }
+  }, [selectedKey]);
+
+  const renderActiveTab = () => {
+    switch (activeTab) {
+      case TABS.KEY_MANAGEMENT:
+        return <KeyManagementTab onGenerate={handleGenerateKeyPair} keys={keys} isGenerating={isGenerating} onViewKey={setSelectedKey} onDeleteKey={handleDeleteKey} />;
+      case TABS.SIGN:
+        return <SignTab keys={keys} />;
+      case TABS.VERIFY:
+        return <VerifyTab />;
+      case TABS.ENCRYPT:
+        return <EncryptTab keys={keys} />;
+      case TABS.DECRYPT:
+        return <DecryptTab keys={keys} />;
+      default:
+        return <div className="p-6 bg-white rounded-lg shadow-md "><p>Select a feature above to get started.</p></div>;
+    }
+  };
+
+  const TabIcon: React.FC<{tab: Tab}> = ({ tab }) => {
+    switch (tab) {
+        case TABS.KEY_MANAGEMENT: return <KeyIcon />;
+        case TABS.SIGN: return <PencilIcon />;
+        case TABS.VERIFY: return <CheckBadgeIcon />;
+        case TABS.ENCRYPT: return <LockClosedIcon />;
+        case TABS.DECRYPT: return <LockOpenIcon />;
+        default: return <QuestionIcon />;
+    }
+  };
+
+  const appShell = (
+    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans p-4 sm:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto">
+        <header className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900">SLH-DSA Test Bed</h1>
+          <p className="text-lg text-gray-600 mt-1">Using {CRYPTO_PROFILE.primaryAlgorithm} with {CRYPTO_PROFILE.subkeyAlgorithm} for post-quantum signing and encryption</p>
+        </header>
+
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded-md shadow-sm mb-8" role="alert">
+          <div className="flex items-center">
+            <div className="py-1"><ExclamationTriangleIcon/></div>
+            <div className="ml-3">
+              <p className="font-bold">Important Note</p>
+              <p className="text-sm">This application uses <code className="bg-yellow-100 px-1 rounded">Sequoia-PGP</code> (Rust, compiled to WebAssembly) for {CRYPTO_PROFILE.primaryAlgorithm} ({CRYPTO_PROFILE.primaryCategory}) signing and {CRYPTO_PROFILE.subkeyAlgorithm} ({CRYPTO_PROFILE.subkeyCategory}) encryption under the {CRYPTO_PROFILE.keyVersion} profile. Keys are real OpenPGP v6 certificates, interoperable with <code className="bg-yellow-100 px-1 rounded">sq</code> and compatible implementations. Signature hashing uses {CRYPTO_PROFILE.hashAlgorithm} (ID {CRYPTO_PROFILE.hashId}). Key generation includes strict cryptographic self-tests plus large v6 certification signatures, so generation can take 10–30 seconds.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center border-b border-gray-200 mb-6">
+          {Object.values(TABS).map(tab => (
+            <TabButton key={tab} isActive={activeTab === tab} onClick={() => setActiveTab(tab)}>
+              <TabIcon tab={tab} />
+              {tab}
+            </TabButton>
+          ))}
+        </div>
+
+        <main>
+          {renderActiveTab()}
+        </main>
+      </div>
+
+      {selectedKey && (
+        <KeyDetailsModal
+          keyPair={selectedKey}
+          onClose={() => setSelectedKey(null)}
+        />
+      )}
+    </div>
+  );
+
+  return (
+    <VerifierAccessGate>
+      {appShell}
+    </VerifierAccessGate>
+  );
+};
+
+export default App;

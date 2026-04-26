@@ -1,0 +1,5 @@
+{
+  "name": "Sequoia-pgp With All Rust. Yes, all Rust.",
+  "description": "A web-based toolkit to generate and manage SLH-DSA (SPHINCS+) post-quantum keys with a PGP-style interface. This application allows for key generation, signing, and signature verification.",
+  "requestFramePermissions": []
+}
