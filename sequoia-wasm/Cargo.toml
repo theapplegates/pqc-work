@@ -1,0 +1,27 @@
+[package]
+name = "sequoia-wasm"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+getrandom = { version = "0.2", features = ["js"] }
+console_error_panic_hook = "0.1"
+anyhow = "1"
+
+[dependencies.sequoia-openpgp]
+path = "../slh-dsa-fork/sequoia/openpgp"
+default-features = false
+features = [
+    "crypto-rust",
+    "allow-experimental-crypto",
+    "allow-variable-time-crypto",
+    "compression-deflate"
+]
+
+[profile.release]
+opt-level = "s"
+lto = true

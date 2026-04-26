@@ -1,0 +1,3 @@
+[submodule "pqc-signature-toolkit"]
+	path = pqc-signature-toolkit
+	url = https://github.com/theapplegates/pqc-signature-toolkit.git
